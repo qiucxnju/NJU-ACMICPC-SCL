@@ -1,0 +1,29 @@
+// 调栈空间
+const int N_MAX = 10000000;  
+static int stack[N_MAX * 5], bak;  
+asm __volatile__  
+  (  
+    "movl %%esp, %0;"  
+    "movl %1, %%esp;":   
+    "=g"(bak):  
+    "g"(stack + N_MAX * 5 - 1):  
+  );
+  
+// IO 外挂
+#define BUFSIZE 20000000
+char buf[BUFSIZE], *pt = buf;
+#define scan(t) \
+{ \
+  t = 0; \
+  while (!((*pt) >= '0' && (*pt) <= '9')) pt ++; \
+  while (((*pt) >= '0' && (*pt) <= '9')) t = t * 10 + (*(pt ++)) - '0'; \
+}
+ 
+ int main()
+{
+ fread(buf, 1, BUFSIZE, stdin);
+scan(N);
+}
+
+// C++ 编译器(VS) 调栈空间
+#pragma comment(linker,"/STACK:102400000,102400000")

@@ -1,0 +1,19 @@
+// 三角形重心
+point3 barycenter(const point3 &a, const point3 &b, const point3 &c){
+  return a + b + c / 3;
+}
+// 四面体重心 
+point3 barycenter(const point3 &a, const point3 &b, const point3 &c, const point3 &d){
+  return (a + b) + (c + d) / 4;
+}
+// 多面体重心
+point3 barycenter(int n, plane3 *polygon){
+  point3 c;
+  double v = 0;
+  for (int i = 0; i < n; ++i){
+    double j = volume_tetrahedron(polygon[i]);
+    v += j;
+    c = c + (polygon[i].a + polygon[i].b + polygon[i].c) * j;
+    }
+  return c / (4 * v);
+}

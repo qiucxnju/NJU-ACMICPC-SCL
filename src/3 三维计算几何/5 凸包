@@ -1,0 +1,65 @@
+//a-b-c右手定则指向凸包外面 
+const int MAXN = 500;
+const int MAXM = 250000;
+struct NODE{
+  int p[4], next, out;
+  point3 f;
+}s[MAXM];
+int edge[MAXN][MAXN];
+int tot;
+int next(int x){
+  if (s[x].next == x) return x;
+  return s[x].next = next(s[x].next);
+}
+void add(int a, int b, int c, point3 *p){
+  s[tot].p[0] = a;
+  s[tot].p[1] = b;
+  s[tot].p[2] = c;
+  s[tot].p[3] = a;
+  s[tot].f = xmult(p[b] - p[a], p[c] - p[a]);
+  s[tot].out = false;
+  for (int i = 0; i < 3; ++i)
+    edge[s[tot].p[i]][s[tot].p[i + 1]] = tot;
+  ++tot;
+}
+void add(int a, int b, int c, int d, point3 *p){
+  point3 f = xmult(p[b] - p[a], p[c] - p[a]);
+  if (dmult(f, p[d] - p[a]) > 0) add(a, c, b, p);
+  else add(a, b, c, p);
+}
+
+// 主程序输入顶点个数， 点集， 返回面，
+// 要求不是所有点共面
+int get_convex(int n, point3* p, plane3* convex){
+  for (int i = 0; i < MAXM; ++i)
+    s[i].next = i;
+  tot = 0;
+  for (int i = 3; i < n; ++i)
+    if (!dots_onplane(p[0], p[1], p[2], p[i])){
+      swap(p[i], p[3]);
+      break;
+    }
+  add(0, 1, 2, 3, p);
+  add(2, 3, 0, 1, p);
+  add(3, 1, 0, 2, p);
+  add(3, 1, 2, 0, p);
+  for (int i = 4; i < n; ++i){
+    for (int j = next(0); j < tot; j = next(j + 1))
+      s[j].out = dmult(s[j].f, p[i] - p[s[j].p[0]]) > 0;
+    int c = tot;
+    for (int j = next(0); j < tot; j = next(j + 1))
+      if (s[j].out){
+        for (int k = 0; k < 3; ++k)
+          if (!s[edge[s[j].p[k + 1]][s[j].p[k]]].out)
+            add(s[j].p[k], s[j].p[k + 1], i, p); 
+        s[j].next = j + 1;
+      }
+  }
+  int i, j; 
+  for (i = 0, j = next(0); j < tot; ++i, j = next(j + 1)){
+    convex[i].a = p[s[j].p[0]];
+    convex[i].b = p[s[j].p[1]];
+    convex[i].c = p[s[j].p[2]];
+  }
+  return i;
+}

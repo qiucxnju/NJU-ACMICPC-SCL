@@ -1,0 +1,35 @@
+// independent 
+// fast multiplication
+LL FM(LL a,LL t,LL mod)
+{
+  a%=mod;
+  LL ans=1, mid=a;
+  while(t){
+    if(t&1) ans*=mid,ans%=mod;
+    mid*=mid;mid%=mod;
+    t>>=1;  
+  } 
+  return ans;
+}
+// gcd
+LL gcd(LL a,LL b)
+{
+  if (a<b){LL c=a;a=b;b=c;}
+  while (b!=0)
+  {
+    LL c=a;a=b;b=c%b;
+  }
+  return a;
+}
+LL lcm(LL a,LL b){
+  LL g=gcd(a,b);
+  return a/g*b; 
+}
+// return gcd(a,b),a*x+b*y=g;
+LL ext_gcd(LL a,LL b,LL &x,LL &y)
+{
+  if(b == 0){x = 1;y = 0;return a;}
+  LL g = ext_gcd(b, a % b, x, y);
+  LL t = x;x = y,y=t-a/b*y;
+  return g;
+}

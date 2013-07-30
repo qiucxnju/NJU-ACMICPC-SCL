@@ -1,0 +1,28 @@
+// depend on 基础  ：multiMod 
+bool witness ( LL s , LL n ) {  
+  LL u = n - 1 ;  
+  int t = 0 ;  
+  while ( ( u & 1 ) == 0 ) u >>= 1 , t ++ ;  
+    
+  LL x = FM ( s , u , n ) ;  
+  while ( t -- ) {  
+    LL tmp = x ;  
+    x = multiMod ( x , x , n ) ;  
+    if ( x == 1 ) {  
+      if ( tmp == n - 1 || tmp == 1  ) return false ;//may be prime  
+      else return true ;//composite  
+    }  
+  }  
+  return true ; //composite  
+}  
+  
+bool millerRabin ( LL n , const int times = 3 ) {  
+  if ( n == 2 ) return true ;  
+  if ( ( n & 1 ) == 0 || n < 2 ) return false ;  
+  int i = times ;  
+  while ( i -- ) {  
+    LL s = rand ( ) % ( n - 1 ) + 1 ;  
+    if ( witness ( s , n ) ) return false ;  
+  }  
+  return true ;  
+}  

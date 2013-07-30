@@ -1,0 +1,8 @@
+sudo apt-get install texlive
+sudo apt-get install texlive-xetex 
+sudo apt-get install latex-cjk-all
+sudo apt-get install texlive-latex3
+如果出现字体问题
+解决1：
+fc-list 然后用可用字体代替format.tex里的字体设置
+复制windowx系统下 C:/windows/Font的字体，然后安装

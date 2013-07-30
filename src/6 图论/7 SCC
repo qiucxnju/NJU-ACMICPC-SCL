@@ -1,0 +1,72 @@
+//SCC by Tarjan
+// nowc 连通分量个数
+//*@
+#include<cstdio>
+#include<cstring>
+#include<stack>
+#include<algorithm>
+ 
+using namespace std;
+
+#define MN 20001
+#define MM 50001
+
+int N,M,T;
+
+struct Graph
+{
+  struct E_Node{
+    int v,ne;
+  } E[MM];
+  int R[MN],sz;
+  void Add( int a, int b){
+    E[++sz].v=b;E[sz].ne=R[a];R[a]=sz;
+  }
+  stack<int> S;
+  bool B[MN];
+  int D[MN],L[MN],C[MN],SZ[MN];
+  int nowc,nowd;
+  void Dfs( int k){
+    D[k]=L[k]=++nowd;
+    B[k]=1;S.push(k);
+    for (int p=R[k];p;p=E[p].ne)
+      if (B[E[p].v]) L[k]=min(L[k],D[E[p].v]);
+      else if (!D[E[p].v]) Dfs(E[p].v),L[k]=min(L[k],L[E[p].v]);
+    if (D[k]==L[k]){
+      int v;
+      nowc++;
+      do{
+        v=S.top();
+        B[v]=0;
+        SZ[nowc]++;
+        S.pop();
+        C[v]=nowc;
+      }while(v!=k);
+    }
+  }
+  void Rebuild( Graph &GG)
+  {
+    GG.init();
+    for (int i=1;i<=N;i++)
+      for (int p=R[i];p;p=E[p].ne)
+        if (C[E[p].v]!=C[i]) GG.Add(C[i],C[E[p].v]);
+  }
+  void SCC(){
+    for (int i=1;i<=N;i++)
+      if (!D[i]) Dfs(i);
+  }
+  void init()
+  {
+    nowc=nowd=0;
+    sz=0;
+    memset(B,0,sizeof B);
+    memset(R,0,sizeof R);
+    memset(D,0,sizeof D);
+    memset(SZ,0,sizeof SZ);
+  }
+} G;
+
+//G.init();
+//G.SCC();
+//G.Rebuild(GG);
+ 

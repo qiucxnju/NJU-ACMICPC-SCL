@@ -1,0 +1,262 @@
+// 判直线和圆相交, 包括相切
+int intersect_line_circle(CP &c,double r,CP &l1,CP &l2){
+  return disptoline(c,l1,l2)<r+eps;
+}
+int intersect_line_circle(CC &c,CP &l1,CP &l2){
+  return disptoline(c.c,l1,l2)<c.r+eps;
+}
+
+// 判线段和圆相交, 包括端点和相切
+int intersect_seg_circle(CP &c,double r,CP &l1,CP &l2){
+  double t1=dis(c,l1)-r,t2=dis(c,l2)-r;
+  point t=c;
+  if (t1<eps||t2<eps)
+    return t1>-eps||t2>-eps;
+  t.x+=l1.y-l2.y;
+  t.y+=l2.x-l1.x;
+  return xmult(l1,c,t)*xmult(l2,c,t)<eps&&disptoline(c,l1,l2)-r<eps;
+}
+int intersect_seg_circle(CC &c,CP &l1,CP &l2){
+  double t1=dis(c.c,l1)-c.r,t2=dis(c.c,l2)-c.r;
+  point t=c.c;
+  if (t1<eps||t2<eps)
+    return t1>-eps||t2>-eps;
+  t.x+=l1.y-l2.y;
+  t.y+=l2.x-l1.x;
+  return xmult(l1,c.c,t)*xmult(l2,c.c,t)<eps&&disptoline(c.c,l1,l2)-c.r<eps;
+}
+// 判圆和圆相交, 包括相切
+int intersect_circle_circle(CP &c1,double r1,CP &c2,double r2){
+  return dis(c1,c2)<r1+r2+eps&&dis(c1,c2)>fabs(r1-r2)-eps;
+}
+int intersect_circle_circle(CC &c1,CC &c2){
+  return dis(c1.c,c2.c)<c1.r+c2.r+eps&&dis(c1.c,c2.c)>fabs(c1.r-c2.r)-eps;
+}
+
+// 计算圆上到点p 最近点, 如p 与圆心重合, 返回p 本身
+point dot_to_circle(CP &c,double r,CP &p){
+  point u,v;
+  if (dis(p,c)<eps)
+    return p;
+  u.x=c.x+r*fabs(c.x-p.x)/dis(c,p);
+  u.y=c.y+r*fabs(c.y-p.y)/dis(c,p)*((c.x-p.x)*(c.y-p.y)<0?-1:1);
+  v.x=c.x-r*fabs(c.x-p.x)/dis(c,p);
+  v.y=c.y-r*fabs(c.y-p.y)/dis(c,p)*((c.x-p.x)*(c.y-p.y)<0?-1:1);
+  return dis(u,p)<dis(v,p)?u:v;
+}
+point dot_to_circle(CC &c,CP &p){
+  point u,v;
+  if (dis(p,c.c)<eps)
+    return p;
+  u.x=c.c.x+c.r*fabs(c.c.x-p.x)/dis(c.c,p);
+  u.y=c.c.y+c.r*fabs(c.c.y-p.y)/dis(c.c,p)*((c.c.x-p.x)*(c.c.y-p.y)<0?-1:1);
+  v.x=c.c.x-c.r*fabs(c.c.x-p.x)/dis(c.c,p);
+  v.y=c.c.y-c.r*fabs(c.c.y-p.y)/dis(c.c,p)*((c.c.x-p.x)*(c.c.y-p.y)<0?-1:1);
+  return dis(u,p)<dis(v,p)?u:v;
+}
+
+// 计算直线与圆的交点, 保证直线与圆有交点
+// 计算线段与圆的交点可用这个函数后判点是否在线段上
+void intersection_line_circle(CP &c,double r,CP &l1,CP &l2,point& p1,point& p2){
+  point p=c;
+  double t;
+  p.x+=l1.y-l2.y;
+  p.y+=l2.x-l1.x;
+  p=intersection(p,c,l1,l2);
+  t=sqrt(r*r-dis(p,c)*dis(p,c))/dis(l1,l2);
+  p1.x=p.x+(l2.x-l1.x)*t;
+  p1.y=p.y+(l2.y-l1.y)*t;
+  p2.x=p.x-(l2.x-l1.x)*t;
+  p2.y=p.y-(l2.y-l1.y)*t;
+}
+void intersection_line_circle(CC &c,CP &l1,CP &l2,point& p1,point& p2){
+  point p=c.c;
+  double t;
+  p.x+=l1.y-l2.y;
+  p.y+=l2.x-l1.x;
+  p=intersection(p,c.c,l1,l2);
+  t=sqrt(c.r*c.r-dis(p,c.c)*dis(p,c.c))/dis(l1,l2);
+  p1.x=p.x+(l2.x-l1.x)*t;
+  p1.y=p.y+(l2.y-l1.y)*t;
+  p2.x=p.x-(l2.x-l1.x)*t;
+  p2.y=p.y-(l2.y-l1.y)*t;
+}
+
+// 计算圆与圆的交点, 保证圆与圆有交点,圆心不重合
+void intersection_circle_circle(CP &c1,double r1,CP &c2,double r2,point& p1,point& p2){
+  point u,v;
+  double t;
+  t=(1+(r1*r1-r2*r2)/dis(c1,c2)/dis(c1,c2))/2;
+  u.x=c1.x+(c2.x-c1.x)*t;
+  u.y=c1.y+(c2.y-c1.y)*t;
+  v.x=u.x+c1.y-c2.y;
+  v.y=u.y-c1.x+c2.x;
+  intersection_line_circle(c1,r1,u,v,p1,p2);
+}
+void intersection_circle_circle(CC &c1,CC &c2,point& p1,point& p2){
+  point u,v;
+  double t;
+  t=(1+(c1.r*c1.r-c2.r*c2.r)/dis(c1.c,c2.c)/dis(c1.c,c2.c))/2;
+  u.x=c1.c.x+(c2.c.x-c1.c.x)*t;
+  u.y=c1.c.y+(c2.c.y-c1.c.y)*t;
+  v.x=u.x+c1.c.y-c2.c.y;
+  v.y=u.y-c1.c.x+c2.c.x;
+  intersection_line_circle(c1.c,c1.r,u,v,p1,p2);
+}
+
+// 判断圆在多边形内, 顶点按顺时针或逆时针给出,offset 为多边形坐标上限
+bool inside_circle_polygon(CP &c, double r, int n, point * polygon){
+  if (!inside_polygon(c, n, polygon, 1))
+    return false;
+  for (int i = 0; i < n; ++i)
+    if (disptoline(c,polygon[i], polygon[(i + 1) % n]) < r)
+      return false;
+  return true;  
+} 
+bool inside_circle_polygon(CC &c, int n, point * polygon){
+  if (!inside_polygon(c.c, n, polygon, 1))
+    return false;
+  for (int i = 0; i < n; ++i)
+    if (disptoline(c.c,polygon[i], polygon[(i + 1) % n]) < c.r)
+      return false;
+  return true;  
+} 
+
+// 判断多边形在圆内， 包括圆上 
+bool inside_polygon_circle(CP &c, double r, int n, point *polygon){
+  for (int i = 0; i < n; ++i)
+    if (dis2(c, polygon[i]) >= r * r)
+      return false;
+  return true;
+}
+bool inside_polygon_circle(CC &c, int n, point *polygon){
+  for (int i = 0; i < n; ++i)
+    if (dis2(c.c, polygon[i]) >= c.r * c.r)
+      return false;
+  return true;
+}
+
+// 求圆外一点与圆的切线, 返回两个切点 
+void tangent_point_circle(CP &c, double r, CP &p, point &a, point &b){
+  double d = dis(c, p);
+  double angp = acos(r / d);
+  double ango = atan2(p.y - c.y, p.x - c.x);
+  a.x = c.x + r * cos(ango + angp);
+  a.y = c.y + r * sin(ango + angp);
+  b.x = c.x + r * cos(ango - angp);
+  b.y = c.y + r * sin(ango - angp);
+}
+void tangent_point_circle(CC &c, CP &p, point &a, point &b){
+  double d = dis(c.c, p);
+  double angp = acos(c.r / d);
+  double ango = atan2(p.y - c.c.y, p.x - c.c.x);
+  a.x = c.c.x + c.r * cos(ango + angp);
+  a.y = c.c.y + c.r * sin(ango + angp);
+  b.x = c.c.x + c.r * cos(ango - angp);
+  b.y = c.c.y + c.r * sin(ango - angp);
+}
+
+// 求内切圆，返回两个切线
+void incut_circle_circle(CP &c1,double r1,CP &c2,double r2,line& l1,line& l2){
+  double d = sqrt(dis2(c1, c2) - sqr(r1 + r2));
+  point p1, p2;
+  intersection_circle_circle(c1, r1 + r2, c2, d, p1, p2);
+  l1.a = (p1 * r1 + c1 * r2) / (r1 + r2);
+  l1.b = l1.a + (c2 - p1);
+  l2.a = (p2 * r1 + c1 * r2) / (r1 + r2);
+  l2.b = l2.a + (c2 - p2);
+}
+
+//求原点原语扇形的夹角
+double area_circle_angle(CP &p1, CP &p2, CP &c, double r){
+  double alpha = fabs(atan2(p1.y - c.y, p1.x - c.x) - atan2(p2.y - c.y, p2.x - c.x));
+  if (alpha > pi) alpha = 2 * pi - alpha;
+  return alpha / 2 * r * r;
+}
+
+// 求三角形的的外接圆
+void  circleoftri(CP &a, CP &b, CP &c, circle &tmp){
+  tmp.c = circumcenter(a,b,c);
+  tmp.r = dis(a, tmp.c);
+}
+
+// 求包含n 个给定点的的最小圆， n <= 3
+void min_circle_reduce(int n, point *p, circle &tmp){
+  //cout<<n<<endl;
+  if (n == 0) tmp.r = -2;
+  else if (n == 1){
+    tmp.c = p[0];
+    tmp.r = 0;
+  }else if (n == 2){
+    tmp.r = dis(p[0], p[1]) / 2;
+    tmp.c = (p[0] + p[1]) / 2;
+  }else if (n == 3)
+    circleoftri(p[0], p[1], p[2], tmp);
+} 
+
+void min_circle(int n, point *p, int m, point *down, circle &c){
+  
+  min_circle_reduce(m, down, c);
+  if (m == 3) return;
+  for (int i = 0; i < n; ++i){
+    //cout<<i<<"  "<<n<<endl;
+    //cout<<dis(p[i], c.c)<<' '<<c.r<<endl;
+    if (dis(p[i], c.c) > c.r){
+      //cout<<m<<"yes"<<endl;
+      down[m] = p[i];
+      min_circle(i, p, m + 1, down, c);
+      point tmp = p[i];
+      for (int j = i; j >= 1; --j)
+        p[j] = p[j - 1];
+      p[0] = tmp;
+    }
+  }
+} 
+
+// 求包含n 个给定点的最小圆
+void min_circle(int n, point *p, circle &c){
+  point down[3];
+  min_circle(n, p, 0,down,c);
+}
+
+//求圆和三角形{c p1 p2}的相交面积
+double area_triangle_circle(CP &c, double r, CP &p1, CP &p2){
+  double x = xmult(p2, c, p1);
+  int flag = ((x)>eps?1:((x)<-eps?-1:0));
+  if (flag == 0) return 0;
+  double r2 = sqr(r);
+  double s = 0, l1 = dis2(p1, c), l2 = dis2(p2, c);
+  if ((l1 <= r2)&&(l2 <= r2))
+    return area_triangle(p2, c, p1) * flag;
+  if ((l1 > r2)&&(l2 > r2)){
+    point p3, p4;
+    s = area_circle_angle(p2, p1, c, r);
+    if (disptoseg(c, p1, p2) < r){
+      intersection_line_circle(c, r, p1, p2, p3, p4);
+      if (dis2(p3, p1) > dis2(p4, p1)) swap(p3, p4);
+      s -= area_circle_angle(p3, p4, c, r) - area_triangle(p3, c, p4);
+      }
+    return s * flag;
+  }
+  if (l1 < l2){
+    point p3, p4;
+    intersection_line_circle(c, r, p1, p2, p3, p4);
+    if (dmult(p3, p2, p1) <= 0) p3 = p4;
+    s = area_triangle(p1, p3, c) + area_circle_angle(p3, p2, c, r);
+    return s * flag;
+  }else{
+    point p3, p4;
+    intersection_line_circle(c, r, p1, p2, p3, p4);
+    if (dmult(p3, p1, p2) <= 0) p3 = p4;
+    s = area_triangle(p2, p3, c) + area_circle_angle(p3, p1, c, r);
+    return s * flag;
+  }
+}
+
+//求圆和多边形的相交面积
+double area_polygon_circle(int n, point p[], CP &c, double r){
+  double ans = 0;
+  for (int i = 0; i < n; ++i)
+    ans += area_triangle_circle(c, r, p[i], p[(i + 1) % n]);
+  return fabs(ans);
+}

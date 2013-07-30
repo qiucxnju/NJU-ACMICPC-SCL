@@ -1,0 +1,89 @@
+#include <stdio.h>
+const int maxn=100;
+int a[maxn],b[maxn],nov_a[maxn],nov_b[maxn];
+int w[maxn][maxn];
+int m,n;
+bool find(int i)
+{
+  nov_a[i]=0;
+  for(int p=0;p<n;p++)
+  if(w[i][p]==0&&nov_b[p])
+  {
+    nov_b[p]=0;
+    if(b[p]>0)
+    {
+      b[p]--;
+      w[i][p]=1;
+      return true;
+    }
+    for(int q=0;q<m;q++)
+    if(w[q][p]==1&&nov_a[q])
+    {
+      if(find(q))
+      {
+        w[i][p]=1;
+        w[q][p]=0;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+bool gao(int i)
+{
+  for(int j=0;j<m;j++)nov_a[j]=1;
+  for(int j=0;j<n;j++)nov_b[j]=1;
+  return find(i);
+}
+int main()
+{
+  int cas=0;
+  while(scanf("%d%d",&m,&n)!=EOF&&(m||n))
+  {
+    for(int i=0;i<m;i++)scanf("%d",&a[i]);
+    for(int i=0;i<n;i++)scanf("%d",&b[i]);
+    for(int i=0;i<m;i++)
+    for(int j=0;j<n;j++)
+    w[i][j]=0;
+    bool ans=true;
+    for(int i=0;i<m;i++)
+    {
+      while(a[i]>0&&gao(i))a[i]--;
+      if(a[i]!=0)
+      {
+        ans=false;
+        break;
+      }
+    }
+    for(int i=0;i<n;i++)
+    if(b[i]>0)ans=false;
+    for(int i=0;i<m;i++)
+    for(int j=0;j<n;j++)
+    if(w[i][j]==1)
+    {
+      b[j]++;
+      w[i][j]=-1;
+      if(!gao(i))
+      {
+        w[i][j]=1;
+        b[j]=0;
+      }
+      
+    }
+    else w[i][j]=-1;
+    cas++;
+    if(cas!=1)printf("\n");
+    if(ans)
+    {
+      for(int i=0;i<m;i++)
+      {
+        for(int j=0;j<n;j++)
+        if(w[i][j]==1)printf("Y");
+        else printf("N");
+        printf("\n");
+      }
+    }
+    else printf("Impossible\n");
+  }
+}
+

@@ -1,0 +1,96 @@
+// depend on 基础：multiMod，FM 
+LL multiMod ( LL a , LL b , LL n ) {
+  a %= n ;  
+  b %= n ;  
+  LL s = 0 ;  
+  while( b ) {  
+    if( b & 1 ) {  
+      s += a ;  
+      if( s >= n ) s -= n ;  
+    }  
+    a <<= 1 ; b >>= 1 ;
+    if(a >= n ) a -= n ;  
+  }  
+  return  s ;  
+}  
+  
+LL FM ( LL s , LL u , LL n ) {  
+  s %= n ;  
+  LL tmp = 1 ;  
+  while ( u ) {  
+    if ( u & 1 ) tmp = multiMod ( tmp , s , n ) ;  
+    s = multiMod ( s , s , n ) ;  
+    u >>= 1 ;  
+  }  
+  return tmp ;  
+}  
+  
+bool witness ( LL s , LL n ) {  
+  LL u = n - 1 ;  
+  int t = 0 ;  
+  while ( ( u & 1 ) == 0 ) u >>= 1 , t ++ ;  
+    
+  LL x = FM ( s , u , n ) ;  
+  while ( t -- ) {  
+    LL tmp = x ;  
+    x = multiMod ( x , x , n ) ;  
+    if ( x == 1 ) {  
+      if ( tmp == n - 1 || tmp == 1  ) return false ;//may be prime  
+      else return true ;//composite  
+    }  
+  }  
+  return true ; //composite  
+}  
+  
+bool millerRabin ( LL n , const int times = 3 ) {  
+  if ( n == 2 ) return true ;  
+  if ( ( n & 1 ) == 0 || n < 2 ) return false ;  
+  int i = times ;  
+  while ( i -- ) {  
+    LL s = rand ( ) % ( n - 1 ) + 1 ;  
+    if ( witness ( s , n ) ) return false ;  
+  }  
+  return true ;  
+}  
+LL gcd ( LL a , LL b ) {  
+  if ( b == 0 ) return a ;  
+  return gcd ( b , a % b ) ;  
+}  
+LL pollard_rho ( LL n ) {  
+  LL x , y , k , d  ;  
+  x = y = rand ( ) % n ;  
+  k = 2 ;  
+  int i = 1 ;  
+  int c =rand ( ) % n ;  
+
+  while ( true ) {  
+    i ++ ;  
+    x = ( multiMod ( x , x , n ) + c ) % n ;  
+    if ( y == x ) return 1 ;//restart  
+    else if ( y > x ) d = gcd ( y - x , n ) ;  
+    else d = gcd ( x - y , n ) ;  
+    if ( d != 1 && d != n - 1 ) return d ;  
+    else {  
+      if ( i == k ) {  
+        y = x ;  
+        k <<= 1 ;  
+      }  
+    }  
+  }  
+}  
+//存放分解出的质因子 
+LL factors [ 54 ] ;
+//初始化为0 
+int cnt ;  
+  
+void split ( LL n ) {//n != 1  
+  if ( millerRabin ( n ) ) factors [ cnt ++ ] = n ;  
+  else {  
+    LL p ;  
+    do {  
+      p = pollard_rho ( n ) ;   
+    }while ( p == n || p == 1 );  
+    split ( p ) ;  
+    split ( n / p ) ;  
+  }  
+}  

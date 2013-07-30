@@ -1,0 +1,481 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+
+using namespace std;
+
+#define MAXN 40010
+#define INF 1ll<<62
+#define MAX(a,b) ((a)>(b)?(a):(b))
+struct SplayTree{
+
+  struct SplayNode{
+    SplayNode *f,*C[2];
+    //int s,ml,mr,max,tot,sz;
+    long long s,c,sz;
+    //bool rev,same;
+  } S[MAXN],*root,*null,*tr;
+  
+  int sz;
+  
+  void init()
+  {
+    for (int i=0;i<=sz;i++) S[i].s=S[i].c=S[i].sz=0;
+    sz=0;
+    null=NewNode(null,-INF);
+    null->s=0;
+    null->f=null;
+    null->sz=0;
+    null->C[0]=null->C[1]=null;
+    root=NewNode(null,-INF);
+    root->C[1]=NewNode(root,INF);
+    update(root->C[1]);
+    update(root);
+  }
+
+  SplayNode * NewNode( SplayNode *f, long long s){
+    SplayNode *ts;
+    ts=S+ ++sz;
+    ts->f=f;
+    ts->c=0;
+    ts->C[0]=ts->C[1]=null;
+    ts->s=s;
+    //ts->tot=ts->max=ts->ml=ts->mr=ts->s;
+    ts->sz=1;
+    //ts->rev=ts->same=0;
+    return ts;
+  }
+  
+  SplayTree(){
+    null=NewNode(null,-INF);
+    null->s=0;
+    null->f=null;
+    null->sz=0;
+    null->C[0]=null->C[1]=null;
+    root=NewNode(null,-INF);
+    root->C[1]=NewNode(root,INF);
+    update(root->C[1]);
+    update(root);
+  }
+
+  void update( SplayNode * x){
+    x->sz=x->C[0]->sz+x->C[1]->sz+1+x->c;
+    /*x->tot=x->C[0]->tot+x->C[1]->tot+x->s;
+    x->max=MAX(x->s,x->C[0]->max);
+    x->max=MAX(x->max,x->C[1]->max);
+    x->max=MAX(x->max,x->C[0]->mr+x->s);
+    x->max=MAX(x->max,x->C[1]->ml+x->s);
+    x->max=MAX(x->max,x->C[0]->mr+x->s+x->C[1]->ml);
+    x->ml=MAX(x->C[0]->ml,x->C[0]->tot+x->s);
+    x->ml=MAX(x->ml,x->C[0]->tot+x->s+x->C[1]->ml);
+    x->mr=MAX(x->C[1]->mr,x->C[1]->tot+x->s);
+    x->mr=MAX(x->mr,x->C[1]->tot+x->s+x->C[0]->mr);*/
+  }
+  
+  /*void labledown( SplayNode *x){
+    SplayNode *ts;
+    int tmp;
+    if (x==null||!(x->same||x->rev)) return ;
+    if (x->same){
+      x->C[1]->same=x->C[0]->same=1;
+      x->C[1]->s=x->C[0]->s=x->s;
+      x->tot=x->s*x->sz;
+      x->max=x->ml=x->mr=x->tot;
+      if (x->s<0)
+        x->max=x->ml=x->mr=x->s;
+    }
+    if (x->rev){
+      tmp=x->ml;x->ml=x->mr;x->mr=tmp;
+      ts=x->C[1];x->C[1]=x->C[0];x->C[0]=ts;
+      x->C[1]->rev=!x->C[1]->rev;x->C[0]->rev=!x->C[0]->rev;
+    }
+    x->same=x->rev=0;
+  }*/
+  
+  void route( SplayNode *k1, int c){
+    SplayNode *k2=k1->f;
+    //labledown(k2->C[!c]);labledown(k1->C[0]);labledown(k1->C[1]);
+
+    k2->C[c]=k1->C[!c];
+    k2->C[c]->f=k2;
+    k1->f=k2->f;
+    if (k2->f->C[0]==k2) k2->f->C[0]=k1;
+    else k2->f->C[1]=k1;
+    k2->f=k1;
+    k1->C[!c]=k2;
+    update(k2);//update(k1);
+    if (root==k2) root=k1;
+  }
+  
+  SplayNode * rank( int k){
+    SplayNode *ts=root;
+    int tmp;
+    while (k){
+      //labledown(ts);
+      tmp=ts->C[0]->sz;
+      if (k<=tmp) ts=ts->C[0];
+      else if (k<=tmp+ts->c+1) break;
+      else k-=tmp+ts->c+1,ts=ts->C[1];
+    }
+    return ts;
+  }
+  
+  /*void select( int s, int r){
+    rank(s,null);rank(r,root);
+  }*/
+  
+  void splay( SplayNode *x, SplayNode *s){
+    if (x==null) return ;
+    update(x);
+    //labledown(x);
+    while (x->f!=s){
+      if (x->f->f==s){
+        if (x->f->C[0]==x)
+          route(x,0);
+        else 
+          route(x,1);
+      } else if (x->f->f->C[0]==x->f){
+        if (x->f->C[0]==x)
+          route(x->f,0),route(x,0);
+        else
+          route(x,1),route(x,0);
+      } else {
+        if (x->f->C[1]==x)
+          route(x->f,1),route(x,1);
+        else
+          route(x,0),route(x,1);
+      }
+    }
+        update(x);
+  }
+
+  void ins( long long k)
+  {
+    SplayNode *ts=root,*ls=null;
+    while (ts!=null){
+      //labledown(ts);
+      ls=ts;
+      if (k==ts->s)
+      {
+        ts->c++;
+        update(ts);
+        splay(ts,null);
+        return ;
+      }
+      else if (k<ts->s) ts=ts->C[0];
+      else ts=ts->C[1];
+    }
+    if (k<ls->s)
+    {
+      ls->C[0]=NewNode(ls,k);
+      update(ls->C[0]);update(ls);
+      splay(ls->C[0],null);
+    } else
+    {
+      ls->C[1]=NewNode(ls,k);
+      update(ls->C[1]);update(ls);
+      splay(ls->C[1],null);
+    }
+  }
+
+  //value k
+  void remove( long long k)
+  {
+    SplayNode *ts=root,*ls=null;
+    while (ts!=null){
+      //labledown(ts);
+      ls=ts;
+      if (k==ts->s)
+      {
+        if (ts->c==0)
+        {
+          splay(ts,null);
+          splay(rank(ts->C[0]->sz),root);
+          root=ts->C[0];
+          root->f=null;
+          root->C[1]=ts->C[1];
+          ts->C[1]->f=root;
+          update(root);
+        } else ts->c--,update(ts),splay(ts,null);
+        return ;
+      }
+      else if (k<ts->s) ts=ts->C[0];
+      else ts=ts->C[1];
+    }
+    return ;//not find
+  }
+
+  //rank k
+  void del( int k)
+  {
+    splay(rank(k+1),null);
+    splay(rank(root->C[0]->sz),root);
+    SplayNode *ts=root;
+    root=ts->C[0];
+    root->f=null;
+    root->C[1]=ts->C[1];
+    ts->C[1]->f=root;
+    update(root);
+  }
+
+  int find( int k)
+  {
+    splay(rank(k+1),null);
+    return root->s;
+  }
+  
+  int find_v( int k)
+  {
+    SplayNode *ts=root;
+    while (ts!=null){
+      //labledown(ts);
+      if (k==ts->s)
+      {
+        splay(ts,null);
+        return 1;
+      }
+      else if (k<ts->s) ts=ts->C[0];
+      else ts=ts->C[1];
+    }
+    return 0;
+  }
+
+  bool empty()
+  {
+    return !(root->sz-2>0);
+  }
+} T;
+
+
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<algorithm>
+#include<queue>
+
+using namespace std;
+
+priority_queue<int> MinNumber;
+
+#define MAXN 300010
+#define INF 1ll<<62
+#define MAX(a,b) ((a)>(b)?(a):(b))
+
+
+
+struct SplayNode{
+  SplayNode *f,*C[2];
+  //int s,ml,mr,max,tot,sz;
+  long long s,c,sz,tot;
+  int neg,pos,sta;
+  //bool rev,same;
+};
+  
+int N,st,it;
+char s[100];
+SplayNode *A[MAXN],*B[MAXN];
+
+
+struct SplayTree{
+
+  int sz;
+  SplayNode S[MAXN],*root,*null,*tr;
+  
+  void init()
+  {
+    for (int i=0;i<=sz;i++) S[i].s=S[i].c=S[i].sz=0;
+    sz=0;
+    null=NewNode(null,-INF);
+    null->s=0;
+    null->tot=0;
+    null->neg=null->pos=0;
+    null->f=null;
+    null->sz=0;
+    null->C[0]=null->C[1]=null;
+    root=NewNode(null,0);
+    root->C[1]=NewNode(root,0);
+    root->neg=root->pos=root->C[1]->neg=root->C[0]->pos=root->sta=root->C[1]->sta=0;
+    update(root->C[1]);
+    update(root);
+  }
+
+  SplayNode * NewNode( SplayNode *f, long long s){
+    SplayNode *ts;
+    ts=S+ ++sz;
+    ts->f=f;
+    ts->C[0]=ts->C[1]=null;
+    ts->s=s;
+    ts->tot=s;
+    ts->neg=s<0?1:0;
+    ts->pos=s>0?1:0;
+    ts->sta=s>0?1:-1;
+    ts->sz=1;
+    return ts;
+  }
+  
+  SplayTree(){
+    null=NewNode(null,-INF);
+    null->s=0;
+    null->f=null;
+    null->sz=0;
+    null->C[0]=null->C[1]=null;
+    root=NewNode(null,0);
+    root->C[1]=NewNode(root,0);
+    update(root->C[1]);
+    update(root);
+  }
+
+  void update( SplayNode * x){
+    x->sz=x->C[0]->sz+x->C[1]->sz+1+x->c;
+    x->tot=x->C[0]->tot+x->C[1]->tot+x->s;
+    x->neg=x->C[0]->neg+x->C[1]->neg+(x->sta==-1?1:0);
+    x->pos=x->C[0]->pos+x->C[1]->pos+(x->sta==1?1:0);
+  }
+  
+  void route( SplayNode *k1, int c){
+    SplayNode *k2=k1->f;
+    //labledown(k2->C[!c]);labledown(k1->C[0]);labledown(k1->C[1]);
+
+    k2->C[c]=k1->C[!c];
+    k2->C[c]->f=k2;
+    k1->f=k2->f;
+    if (k2->f->C[0]==k2) k2->f->C[0]=k1;
+    else k2->f->C[1]=k1;
+    k2->f=k1;
+    k1->C[!c]=k2;
+    update(k2);update(k1);
+    if (root==k2) root=k1;
+  }
+  
+  SplayNode * rank( int k){
+    SplayNode *ts=root;
+    int tmp;
+    while (k){
+//        labledown(ts);
+      tmp=ts->C[0]->sz;
+      if (k<=tmp) ts=ts->C[0];
+      else if (k<=tmp+1) break;
+      else k-=tmp+1,ts=ts->C[1];
+    }
+    return ts;
+  }
+  
+
+  long long query( SplayNode *l, SplayNode *r)
+  {
+    splay(l,null);splay(r,root);
+    return root->C[1]->C[0]->tot+root->s+root->C[1]->s;
+  }
+  
+  void splay( SplayNode *x, SplayNode *s){
+    if (x==null) return ;
+    update(x);
+    //labledown(x);
+    while (x->f!=s){
+      if (x->f->f==s){
+        if (x->f->C[0]==x)
+          route(x,0);
+        else 
+          route(x,1);
+      } else if (x->f->f->C[0]==x->f){
+        if (x->f->C[0]==x)
+          route(x->f,0),route(x,0);
+        else
+          route(x,1),route(x,0);
+      } else {
+        if (x->f->C[1]==x)
+          route(x->f,1),route(x,1);
+        else
+          route(x,0),route(x,1);
+      }
+    }
+        update(x);
+  }
+
+  //rank k
+  void del( SplayNode *ss)
+  {
+    splay(ss,null);
+    splay(rank(root->C[0]->sz),root);
+    SplayNode *ts=root;
+    root=ts->C[0];
+    root->f=null;
+    root->C[1]=ts->C[1];
+    ts->C[1]->f=root;
+    update(root);
+  }
+
+  void ins( int k, int s)
+  {
+    splay(rank(k+1),null);
+    //splay(rank(k),root);
+    SplayNode *ts=NewNode(root,s);
+    root->C[0]->f=ts;
+    ts->C[0]=root->C[0];
+    root->C[0]=ts;
+    A[s]=ts;
+    splay(ts,null);
+  }
+  void find( int t)
+  {
+    SplayNode *ts=root,*ls;
+    while (ts!=null)
+    {
+      ls=ts;
+      if (ts->C[1]->neg>=t) ts=ts->C[1];
+      else if (ts->C[1]->neg+(ts->sta<0?1:0)==t) break;
+      else t-=ts->C[1]->neg+(ts->sta<0?1:0),ts=ts->C[0];
+    }
+    if (ts==null)splay(ls,null);
+    else splay(ts,null);
+  }
+  void insins( int k, int s)
+  {
+    int t=root->C[1]->pos;
+    find(t);
+    SplayNode *ts=NewNode(root,-s);
+    root->C[0]->f=ts;
+    ts->C[0]=root->C[0];
+    root->C[0]=ts;
+    B[s]=ts;
+    splay(ts,null);
+  }
+} T;
+
+void ins( int k, int s)
+{
+  T.ins(k,s);
+  T.insins(k,s);
+}
+
+
+int main()
+{
+  int cases=0;
+  while (scanf("%d\n",&N)!=EOF)
+  {
+    T.init();
+    while (MinNumber.size()) MinNumber.pop();
+    int nown=0,t;
+    printf("Case #%d:\n",++cases);
+    while (N--)
+    {
+      scanf("%s %d\n",s,&t);
+      if (s[0]=='i')
+      {
+        t++;
+        if (MinNumber.empty()) it=++nown;
+        else it=-MinNumber.top(),MinNumber.pop();
+        ins(t,it);
+      } else if (s[0]=='r') 
+      {
+        MinNumber.push(-t);
+        T.del(A[t]);
+        T.del(B[t]);
+      } else if (s[0]=='q')
+      {
+        printf("%I64d\n",T.query(A[t],B[t]));
+      }
+    }
+  }
+}

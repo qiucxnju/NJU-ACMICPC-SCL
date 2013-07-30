@@ -1,0 +1,272 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <set>
+#include <vector>
+#include <stack>
+#include <cmath>
+
+using namespace std; 
+
+#define MN 410000
+#define MM 2000000
+#define logMN 19
+#define pb(x) push_back(x)
+
+int N,M;
+
+struct Graph
+{
+  struct E_Node
+  {
+    int a,v,ne;
+  } E[MM];
+  
+  int R[MN],e_sz;
+  
+  
+  void Add( int a, int b, int c=0)
+  {
+    if (a==b) return;
+    E[++e_sz].v=b;;E[e_sz].ne=R[a];R[a]=e_sz;E[e_sz].a=a;
+  }
+  
+  int SZ[MN];
+  int O[MM];
+  
+  void init()
+  {
+    e_sz=0;
+    memset(R,0,sizeof R);
+
+    //Edge_Connect
+  }
+  
+  
+  //Rebuild
+  //重构图
+  //E[],R[],N,col[],color
+  //G
+  int _col[MN];
+  
+  void Rebuild( Graph &GG)
+  {
+    GG.init();
+    for (int i=1;i<=color;i++) GG.cut[i]=0;
+    for (int i=1;i<=N;i++)
+    {
+      if (cut[i]) 
+      {
+        GG.cut[col[i]=++color]=1;
+        for (int p=R[i];p;p=E[p].ne)
+          GG.Add(col[i],O[p]),GG.Add(O[p],col[i]);
+      }
+    }
+    for (int i=1;i<=color;i++) GG.SZ[i]=0;
+    for (int i=1;i<=N;i++) GG.SZ[col[i]]++;
+  }
+  
+  //Edge_Connect 
+  //边双连通分量
+  //E[],R[],N
+  //先去除重边
+  
+  bool vis[MN];
+  int dfs[MN],low[MN];
+  int col[MN];
+  bool vise[MM];
+  int color,cc;
+  bool cut[MN];
+  stack<int> stk;
+  vector<int> cedge;
+
+  int op( int p)
+  {
+    if (p&1) return p+1;
+    else return p-1;
+  }
+  
+int ci,cp;
+  void Cedge()
+  {
+    for (ci=0;ci<cedge.size();ci++)
+      for (cp=R[cedge[ci]];cp;cp=E[cp].ne)
+        if (col[cedge[ci]]==col[E[cp].v])
+          O[cp]=O[op(cp)]=col[cedge[ci]];
+  }
+  
+  int CO[MN];
+int pp[MN];
+  void Dfs( int k)
+  {
+    vis[k]=1;
+    stk.push(k);
+    low[k]=dfs[k]=++cc;
+    CO[k]=0;
+#define p pp[k]
+    for (p=R[k];p;p=E[p].ne)
+    {
+      if (vise[p]) 
+      {
+//        low[k]=min(low[k],dfs[E[p].v]);
+        continue;
+      }
+      vise[p]=vise[op(p)]=1;
+      if (!vis[E[p].v]) Dfs(E[p].v),CO[k]++,low[k]=min(low[k],low[E[p].v]);
+      else 
+      {
+        low[k]=min(low[k],dfs[E[p].v]);
+        continue;//
+      }
+      if (dfs[k]==1&&CO[k]>1) cut[k]=1;
+      else if (dfs[k]!=1&&dfs[k]<=low[E[p].v]) cut[k]=1;
+      if (dfs[k]<=low[E[p].v])
+      {
+  
+        cedge.clear();
+        col[k]=++color;
+        col[E[p].v]=color;
+        cedge.pb(k);
+        cedge.pb(E[p].v);
+        while (stk.top()!=E[p].v)
+        {
+          col[stk.top()]=color;
+          cedge.pb(stk.top());
+          stk.pop();
+        }
+        stk.pop();
+        Cedge();
+
+      //stk.pop();
+      }
+    }
+  }
+#undef p
+  
+  void Edge_Connect()
+  {
+    memset(cut,0,sizeof cut);
+    while (stk.size()) stk.pop();
+    for (int i=0;i<=e_sz;i++) vise[i]=0;
+
+    color=cc=0;
+    for (int i=1;i<=N;i++)
+      vis[i]=0,col[i]=0;
+    for (int i=1;i<=N;i++)
+    {
+      cc=0;
+      if (!vis[i]) Dfs(i);
+/*      if (stk.size())
+      {
+        ++color;
+        while (stk.size())
+        {
+          col[stk.top()]=color;
+          stk.pop();
+        }
+      }*/
+    }
+  }
+
+  //buildtree
+  //建树
+  int dep[MN],root[MN];
+  int ancestor[MN][logMN];
+  int F[MN][logMN];
+  int W[MN][logMN];
+  int P[MN];
+#define p pp[k]
+  void buildtree( int k)
+  {
+    vis[k]=1;
+    for (p=R[k];p;p=E[p].ne)
+    {
+      if (vis[E[p].v]) continue;
+    /*  if (cut[k]&&cut[E[p].v])
+      {
+        puts("");
+      }*/
+
+      if (cut[k]==1) P[E[p].v]++;
+      if (cut[E[p].v]==1) P[k]++;
+      ancestor[E[p].v][0]=k,F[E[p].v][0]=SZ[E[p].v],dep[E[p].v]=dep[k]+1,root[E[p].v]=root[k],buildtree(E[p].v);
+    }
+  }
+#undef p
+  //lca_init
+  //lca预处理
+  //可以处理森林
+  void lca_init( int N)
+  {
+    memset(ancestor,0,sizeof ancestor);
+    for (int i=1;i<=N;i++) vis[i]=0,P[i]=0;
+    for (int i=1;i<=N;i++)
+      if (ancestor[i][0]==0) F[i][0]=SZ[i],dep[i]=1,root[i]=i,buildtree(i);
+
+    for (int i=1;i<=N;i++)
+    {
+      if (cut[i]) P[i]=0,F[i][0]=1;F[i][0]+=P[i];
+    }
+    for (int k=1;k<=log2(N);k++)
+      for (int i=1;i<=N;i++)
+      {
+        ancestor[i][k]=ancestor[ancestor[i][k-1]][k-1];
+        F[i][k]=F[i][k-1]+F[ancestor[i][k-1]][k-1];
+      }
+  }
+
+  //return lca(a,b)
+  //return -1 if a,b in diffirent tree
+  int lca_query(int a, int b, int N)
+  {
+    int ans=0,tans=0,tt=0;
+    if (root[a]!=root[b]) return 0;
+    if (a==b) return F[a][0];
+    if (dep[a]>dep[b]) swap(a,b);
+    int delta=dep[b]-dep[a];
+    ans=-delta;
+    for (int k=0;k<=log2(N);k++) if ((1<<k)&delta) ans+=F[b][k],b=ancestor[b][k];
+    if (a==b) return ans+F[a][0];
+    for (int k=log2(N);k>=0;k--) if (ancestor[a][k]!=ancestor[b][k]) ans+=F[a][k]+F[b][k],ans-=1<<(k+1),a=ancestor[a][k],b=ancestor[b][k];
+    return ans+F[a][0]+F[b][0]+F[ancestor[a][0]][0]-2;
+  }
+
+} G,GG;
+  
+
+int cases;
+  
+int main()
+{
+  int a,b;
+  while (scanf("%d%d",&N,&M)!=EOF)
+  {
+    G.init();
+    //Edge.clear();
+    for (int i=1;i<=M;i++)
+    {
+      scanf("%d%d",&a,&b);
+      a++;b++;
+    //  if (Edge.find(make_pair(a,b))!=Edge.end()) continue;
+      G.Add(a,b);G.Add(b,a);
+    //  Edge.insert(make_pair(a,b));
+    //  Edge.insert(make_pair(b,a));
+    }
+    G.Edge_Connect();
+    G.Rebuild(GG);
+    GG.lca_init(G.color);
+
+    int T;
+    scanf("%d",&T);
+    printf("Case #%d:\n",++cases);
+    while (T--)
+    {
+      scanf("%d%d",&a,&b);
+      a++;b++;
+      if (a==b) printf("%d\n",N-1);
+      else printf("%d\n",N-GG.lca_query(G.col[a],G.col[b],G.color));
+    }
+    puts("");
+  }
+}
+

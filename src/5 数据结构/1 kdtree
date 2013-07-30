@@ -1,0 +1,182 @@
+const int inf = 1000000000;
+#define sqr(x) (((long long)(x))*(x))
+const int MAXN = 500000;
+//MAXM 维度数
+const int MAXM = 2;
+// 必须手动设置点的度数 degree
+struct POINT{
+  int x[MAXM], lx[MAXM], rx[MAXM];
+  int index;
+  int degree;
+  POINT(){
+    for (int i = 0; i < MAXM; ++i){
+      lx[i] = 0;
+      rx[i] = inf;
+    }
+  };
+  long long dis(const POINT &a){
+    long long ans = 0;
+    for (int i = 0; i < degree; ++i)
+      ans += sqr(x[i] - a.x[i]);
+    return ans;
+  }
+}p[MAXN];
+//comindex 是首先比较的维度必须在比较之前赋值
+int cmpindex;
+bool cmp(const POINT &a, const POINT &b){
+  for (int i = 0; i < a.degree; ++i){
+    int j = (i + cmpindex) % a.degree;
+    if (a.x[j] != b.x[j])
+      return a.x[j] < b.x[j];
+  }
+  return false;
+}
+//degree 首先被比较的维度
+struct NODE{
+  POINT p;
+  int left, right, father;
+  int number, degree, flag;
+  void init(const POINT &a, int d){
+    p = a;
+    left = -1;
+    right = -1;
+    degree = d;
+    number = 1;
+    flag = false;
+  }
+}node[MAXN];
+int nodesize;
+// 储存结果
+struct CYL{
+  POINT p;
+  long long r;
+  bool operator < (const CYL &a)const{
+    return r < a.r;
+  }
+};
+// 求出v 节点下的所有点到顶点p 的距离
+void searchr(int v, const POINT &p, priority_queue<CYL> &pq, int k){
+  if (v == -1) return;
+  CYL c;
+  c.p = node[v].p;
+  c.r = c.p.dis(p);
+  pq.push(c);
+  while (pq.size() > k) pq.pop();
+  searchr(node[v].left, p, pq, k);
+  searchr(node[v].right, p, pq, k);
+}
+// 贪心地返回点数接近k 的节点 
+int searchknode(int v, const POINT &p, int k){
+  if ((v == -1)||(node[v].number < k)) return -1;
+  cmpindex = node[v].degree;
+  if (cmp(p, node[v].p)){
+    if ((node[v].left != -1)&&(node[node[v].left].number >= k))
+      return searchknode(node[v].left, p, k);
+  }else{
+    if ((node[v].right != -1)&&(node[node[v].right].number >= k))
+      return searchknode(node[v].right, p, k);
+  }
+  return v;
+}
+// 检查某区域是否可能有k 小的点
+bool check(POINT &root, const POINT &p, priority_queue<CYL> &pq){
+  POINT c;
+  c.degree = p.degree;
+  for (int i = 0; i < p.degree; ++i){
+    if ((root.lx[i] <= p.x[i])&&(p.x[i] <= root.rx[i])){
+      c.x[i] = p.x[i];
+      continue;
+    }
+    if (p.x[i] < root.lx[i]) c.x[i] = root.lx[i];
+    else c.x[i] = root.rx[i];
+  }
+  if (c.dis(p) < pq.top().r) return true;
+  return false;
+}
+// 寻找距离最近的k 个点
+void findk(int v, const POINT &p, int k, priority_queue<CYL> &pq){
+  if (node[v].flag){
+    node[v].flag = false;
+    return;
+  }
+  long long d = node[v].p.dis(p);
+  if (d < pq.top().r){
+    CYL c;
+    c.p = node[v].p;
+    c.r = d;
+    pq.push(c);
+    pq.pop();
+  }
+  if ((node[v].left != -1)&&check(node[node[v].left].p, p, pq))
+    findk(node[v].left, p, k, pq);
+  if ((node[v].right != -1)&&check(node[node[v].right].p, p, pq))
+    findk(node[v].right, p, k, pq);
+}
+//KNN 算法，输入KD-tree 的根， 返回与p 最相邻的k 个点
+//ans 中保证点到p的距离依次递增
+void KNN(const POINT &p, int k, POINT ans[]){
+  priority_queue<CYL> pq;
+  int v = searchknode(0, p, k);
+  //cout<<v<<endl;
+  node[v].flag = true;
+  searchr(v, p, pq, k);
+  while(pq.size() > k){
+    pq.pop();
+  }
+  cnt = 0;
+  findk(0, p, k, pq);
+  node[v].flag = false;
+  int n = pq.size();
+  for (int i = 0; i < k; ++i){
+    ans[i] = pq.top().p;
+    pq.pop();
+  }
+  reverse(ans, ans + k);
+}
+// 设置每个区域的界
+void boundset(int v){
+  if (v == -1) return;
+  if (node[v].left != -1){
+    for (int i = 0; i < node[v].p.degree; ++i){
+      node[node[v].left].p.rx[i] = node[v].p.rx[i];
+      node[node[v].left].p.lx[i] = node[v].p.lx[i];
+    }
+    node[node[v].left].father = v;
+    node[node[v].left].p.rx[node[v].degree] = node[v].p.x[node[v].degree];
+    boundset(node[v].left);
+  }
+  if (node[v].right != -1){
+    for (int i = 0; i < node[v].p.degree; ++i){
+      node[node[v].right].p.rx[i] = node[v].p.rx[i];
+      node[node[v].right].p.lx[i] = node[v].p.lx[i];
+    }
+    node[node[v].right].father = v;
+    node[node[v].right].p.lx[node[v].degree] = node[v].p.x[node[v].degree];
+    boundset(node[v].right);
+  }
+}
+
+// 根据p 中的[s, t) 点建立Kd-TREE ,
+//p 中的顺序会被破坏
+//degree 是首先比较的维度 
+int buildtree(int s, int t, int degree, POINT p[], begin = 1){
+  if (begin) nodesize = 0;
+  if (s == t) return -1;
+  else if(t - s == 1){
+    node[nodesize].init(p[s], degree);
+    return nodesize++;
+  }
+  cmpindex = degree;
+  sort(p + s, p + t, cmp);
+  int mid = (s + t - 1) >> 1;
+  int v = nodesize;
+  node[nodesize++].init(p[mid], degree);
+  node[v].left = buildtree(s, mid, (degree + 1) % p[mid].degree, p, 0);
+  node[v].right = buildtree(mid + 1, t, (degree + 1) % p[mid].degree, p, 0);
+  node[v].number = t - s;
+  if (!v){
+    node[0].father = -1;
+    boundset(0);
+  }
+  return v;
+}

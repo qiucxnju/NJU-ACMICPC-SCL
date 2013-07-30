@@ -1,0 +1,78 @@
+#define eps 1e-8
+#define fabs(x) ((x) > 0? (x): -(x))
+#define zero(x) (fabs(x) < eps)
+#define sqr(x) ((x)*(x))
+#define _sign(x) ((x)>eps?1:((x)<-eps?2:0))
+const double pi = acos(-1);
+
+// 点的定义 
+struct point3{
+  double x, y, z;
+  point3(){x = 0;y = 0;z = 0;}
+  point3(double sx, double sy, double sz){
+    x = sx;
+    y = sy;
+    z = sz;
+    }
+  bool operator <(const point3 &b)const{
+    if (b.x == x){
+      if (y == b.y) return z < b.z;
+      return y < b.y;
+    }
+    return x < b.x;
+  }
+  point3 operator - (const point3 &b)const {
+    point3 a;
+    a.x = x - b.x;
+    a.y = y - b.y;
+    a.z = z - b.z;
+    return a;
+  }
+  point3 operator + (const point3 &b)const{
+    point3 a;
+    a.x = x + b.x;
+    a.y = y + b.y;
+    a.z = z + b.z;
+    return a;
+  }
+  point3 operator / (const double &c)const{
+    point3 a;
+    a.x = x / c;
+    a.y = y / c;
+    a.z = z / c;
+    return a;
+  }
+  point3 operator * (const double &c)const{
+    point3 a;
+    a.x = x * c;
+    a.y = y * c; 
+    a.z = z * c;
+    return a;
+  }
+  bool operator == (const point3 &p) const {
+    return zero(x - p.x)&&zero(y - p.y)&&zero(z - p.z);
+  }
+  friend ostream& operator << (ostream &out, const point3 &a);
+};
+ostream& operator << (ostream &out, const point3 &a){
+  out<<a.x<<' '<<a.y<<' '<<a.z;
+  return out;
+}
+
+// 边定义
+struct line3{
+  point3 a, b;
+  line3(){};
+  line3(const point3 &p1, const point3 &p2){
+    a = p1;
+    b = p2;
+  }
+  friend ostream& operator << (ostream &out, const line3 &a);
+};
+ostream& operator << (ostream &out, const line3 &a){
+  out<<a.a<<' '<<a.b<<' ';
+  return out;
+}
+
+// 面定义
+struct plane3{point3 a,b,c;};

@@ -1,0 +1,109 @@
+#include<iostream>
+#include<cstring>
+#include<cstdio>
+#include<cmath>
+#include<vector>
+#include<queue>
+#include<algorithm>
+using namespace std;
+//const int inf=INT_MAX;
+//int maxInt   =   0x7FFFFFFF;//   32   bit
+//long  maxLong  =   0x7FFFFFFFFFFFFFFF;   // 64   bit
+#define ll long long
+const int inf= 0x7FFFFFFF;
+const char atcg[]="ATCG";
+const int kind=4;
+int n,m;
+char in[105];
+struct ahocorasick{
+  static const int undef=0;//tag初始化
+  static const int maxn=1<<10;
+  static const int charset=4;//子节点个数
+  int end;
+  int tag[maxn],fail[maxn],trie[maxn][charset];
+  void init(){
+    tag[0]=undef;
+    fill(trie[0],trie[0]+charset,-1);
+    end=1;
+  }
+  void add(int m,const char *s,int t){//插入状态为t
+    int p=0,index;
+    for(int i=0;i<m;i++){
+      index=strchr(atcg,s[i])-atcg;
+      if(trie[p][index]==-1){
+        tag[end]=undef;
+        fill(trie[end],trie[end]+charset,-1);
+        trie[p][index]=end++;
+      }
+      p=trie[p][index];
+    }
+    tag[p]|=t;
+  }
+  void build(){
+    queue<int>bfs;
+    fail[0]=0;
+    for(int i=0;i<charset;i++){
+      if(trie[0][i]!=-1){
+        fail[trie[0][i]]=0;
+        bfs.push(trie[0][i]);
+      }
+      else
+        trie[0][i]=0;
+    }
+    while(!bfs.empty()){
+      int p=bfs.front();
+      tag[p]|=tag[fail[p]];
+      bfs.pop();
+      for(int i=0;i<charset;i++){
+        if(trie[p][i]!=-1){
+          fail[trie[p][i]]=trie[fail[p]][i];
+          bfs.push(trie[p][i]);
+        }
+        else
+          trie[p][i]=trie[fail[p]][i];
+      }
+    }
+  }
+}ac;
+bool dp[2][1<<11][1<<11];
+int sum[1<<11];
+int w[101];
+int main(){
+  int i,j,k,t,cur,pre;
+  while(scanf("%d%d",&n,&m)+1){
+    ac.init();
+    for(i=0;i<n;i++){
+      scanf("%s %d",in,&w[i]);
+      ac.add(strlen(in),in,1<<i);
+    }
+    ac.build();
+    memset(sum,0,sizeof(sum));
+    for(i=0;i<(1<<10);i++)
+    for(j=0;j<n;j++){
+      if(i&(1<<j))
+      sum[i]+=w[j];
+    }
+    memset(dp,false,sizeof(dp));
+    cur=0,pre=1;
+    dp[cur][0][0]=true;
+    for(i=0;i<m;i++){
+      swap(cur,pre);
+      memset(dp[cur],false,sizeof(dp[cur]));
+      for(int j=0;j<ac.end;j++)
+        for(k=0;k<4;k++){
+          int nxt=ac.trie[j][k];
+          for(t=0;t<(1<<n);t++)
+          dp[cur][nxt][t|ac.tag[nxt]] |=dp[pre][j][t];
+        }
+    }
+    int ans=-1;
+    for(i=0;i<(1<<n);i++)
+      for(j=0;j<ac.end;j++){
+        if(dp[cur][j][i]){
+          ans=max(ans,sum[i]);
+        }
+      }
+    if(ans<0)puts("No Rabbit after 2012!");
+    else cout<<ans<<endl;
+  }
+}

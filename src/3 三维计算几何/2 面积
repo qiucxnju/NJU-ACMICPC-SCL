@@ -1,0 +1,17 @@
+// 求三角形有向表面积， 输入三个顶点
+double area_triangle(const plane3 &p){
+  return len(xmult(p.b - p.a, p.c - p.a))/2;
+} 
+double area_triangle(const point3 &p1, const point3 &p2, const point3 &p3){
+  return len(xmult(p2 - p1, p3 - p1))/2;
+} 
+double area_triangle(const point3 &p2, const point3 &p3){
+  return len(xmult(p2, p3))/2;
+} 
+// 求多边形有向表面积， 输入三个顶点
+double area_polygon(int n,point3* p){
+  double s;
+  for (int i = 0;i < n; ++i)
+    s += len(xmult(p[i], p[(i + 1) % n])) / 2;
+  return s;
+}

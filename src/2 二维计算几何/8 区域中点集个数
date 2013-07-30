@@ -1,0 +1,117 @@
+// 求p1 中任意三点切割的七个区域的p1 点集的个数, 要求三点不共线 
+// 求xy 到xz 角度里点的个数 
+int pointinang(int x, int y, int z, int m, int f[][MAXN], int index[][MAXN]){
+  if (index[x][z] < index[x][y]) return m + f[x][z] - f[x][y] + 1;
+  return f[x][z] - f[x][y] - 1;
+}
+
+// 求三角形xyz 中的点的个数, 输入总的点的个数,  
+//f[x][y] 表示x 为中心ang 比y 小的点的个数
+//h[x][y] 表示xy 左边的点的个数
+//index[x][y] 表示x 为中心极角排序后的序 
+int pointintri(point p[], int x, int y, int z, int m, int f[][MAXN], int h[][MAXN], int index[][MAXN]){
+  if (xmult(p[z], p[y], p[x]) > 0) swap(y, z);
+  int a = h[x][z] + h[y][x] + h[z][y];
+  a += pointinang(x, y, z, m, f, index);
+  a += pointinang(y, z, x, m, f, index);
+  a += pointinang(z, x, y, m, f, index);
+  a -= 2 * m;
+  return a;
+}
+
+// 求p1 任意三点划分的区域的点的个数, 要求三点不共线  
+//f[x][y] 表示x 为中心ang 比y 小的点的个数
+//h[x][y] 表示xy 左边的点的个数
+//index[x][y] 表示x 为中心极角排序后的序 
+void pointinarea(int n, point p1[], int f[][MAXN], int h[][MAXN], int index[][MAXN]){
+  point p[2 * MAXN];
+  for (int i = 0; i < n; ++i){
+    int cnt = 0;
+    for (int j = 0; j < n; ++j)
+      if (i != j){
+        p[cnt] = p1[j];
+        p[cnt].index = j;
+        p[cnt++].ang = atan2(p1[j].y - p1[i].y, p1[j].x - p1[i].x);
+      }
+    sort(p, p + cnt, cmp);
+    for (int j = 0; j < cnt; ++j){
+      p[j + cnt] = p[j];
+      p[j + cnt].ang += 2 * pi;
+    }
+    for (int k = 0, j = 0, mine = 0, l = 0; k < cnt; ++k){
+      while (p[j].ang - p[k].ang < pi){
+        ++mine;
+        ++j;
+      }
+      --mine;
+      h[i][p[k].index] = mine;
+      f[i][p[k].index] = l;
+      index[i][p[k].index] = k;
+      ++l;
+    }
+  }
+}
+
+
+// 求p1 中任意三点切割的七个区域的p2 点集的个数, 要求三点不共线 
+// 求xy 到xz 角度里点的个数 
+int pointinang2(int x, int y, int z, int m, int f[][MAXN], int index[][MAXN]){
+  if (index[x][z] < index[x][y]) return m + f[x][z] - f[x][y];
+  return f[x][z] - f[x][y];
+}
+
+// 求三角形xyz 中的点的个数, 输入总的点的个数,  
+//f[x][y] 表示x 为中心ang 比y 小的点的个数
+//h[x][y] 表示xy 左边的点的个数
+//index[x][y] 表示x 为中心极角排序后的序 
+int pointintri2(point p[], int x, int y, int z, int m, int f[][MAXN], int h[][MAXN], int index[][MAXN]){
+  if (xmult(p[z], p[y], p[x]) > 0) swap(y, z);
+  int a = h[x][z] + h[y][x] + h[z][y];
+  a += pointinang2(x, y, z, m, f, index);
+  a += pointinang2(y, z, x, m, f, index);
+  a += pointinang2(z, x, y, m, f, index);
+  a -= 2 * m;
+  return a;
+}
+
+// 求p1 任意三点划分的区域的p2 点的个数, 要求三点不共线  
+//f[x][y] 表示x 为中心ang 比y 小的点的个数
+//h[x][y] 表示xy 左边的点的个数
+//index[x][y] 表示x 为中心极角排序后的序 
+void pointinarea2(int n, point p1[], int m, point p2[], int f[][MAXN], int h[][MAXN], int index[][MAXN]){
+  point p[2 * (MAXN + MAXM)];
+  for (int i = 0; i < n; ++i){
+    int cnt = 0;
+    for (int j = 0; j < n; ++j)
+      if (i != j){
+        p[cnt] = p1[j];
+        p[cnt].index = j;
+        p[cnt++].ang = atan2(p1[j].y - p1[i].y, p1[j].x - p1[i].x);
+      }
+    for (int j = 0; j < m; ++j){
+        p[cnt] = p2[j];
+        p[cnt].index = n + j;
+        p[cnt++].ang = atan2(p2[j].y - p1[i].y, p2[j].x - p1[i].x);
+      }
+    sort(p, p + cnt, cmp);
+    for (int j = 0; j < cnt; ++j){
+      p[j + cnt] = p[j];
+      p[j + cnt].ang += 2 * pi;
+    }
+    for (int k = 0, j = 0, mine = 0, l = 0; k < cnt; ++k){
+      while (p[j].ang - p[k].ang < pi){
+        if (p[j].index >= n) ++mine;
+        ++j;
+      }
+      if (p[k].index < n){
+        h[i][p[k].index] = mine;
+        f[i][p[k].index] = l;
+        index[i][p[k].index] = k;
+      }
+      if (p[k].index >= n){
+        --mine;
+        ++l;
+      }
+    }
+  }
+}

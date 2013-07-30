@@ -1,0 +1,15 @@
+// independent 
+const int MAXN=10000000;
+int cprime[MAXN],used=0;
+char p[MAXN]; 
+void prime_(){
+   memset(p,0,sizeof p);
+   for(int i=2;i<MAXN;i++){
+     if(!p[i])  cprime[used]=i,used++;
+     for(int j=0;j<used;j++){
+       if(i*cprime[j]>MAXN) break;
+       p[i*cprime[j]]=true;
+       if(i%cprime[j]==0)break;   
+     }    
+   }
+}

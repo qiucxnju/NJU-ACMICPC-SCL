@@ -1,0 +1,17 @@
+// 求四面体有向体积， 输入四个点
+double volume_tetrahedron(const point3 &p1, const point3 &p2, const point3 &p3, const point3 &p4){
+  return dmult(xmult(p1 - p4, p2 - p4), p3 - p4) / 6;
+}
+double volume_tetrahedron(const point3 &p1, const point3 &p2, const point3 &p3){
+  return dmult(xmult(p1, p2), p3) / 6;
+}
+double volume_tetrahedron(const plane3 &p){
+  return dmult(xmult(p.a, p.b), p.c) / 6;
+}
+// 求多面体有向体积 
+double volume_polygon(int n, plane3 *polygon){
+  double c = 0;
+  for (int i = 0; i < n; ++i)
+    c += volume_tetrahedron(polygon[i]);
+  return c;
+}

@@ -1,0 +1,30 @@
+import java.io.*;
+import java.math.BigInteger;
+import java.util.*;
+public class Main {
+  public static void main(String[] args) {
+    Scanner cin = new Scanner(new BufferedInputStream(System.in));
+    while (cin.hasNext()){
+      int m = cin.nextInt();
+      int n = cin.nextInt();
+      int best = 0;
+      BigInteger b[] = new BigInteger[m];
+      for (int i = 0; i < m; ++i)
+        b[i] = BigInteger.valueOf(1);
+      for (int i = 0; i < n; ++i){
+        //BigInteger c = BigInteger.valueOf(1);
+        for (int j = 0; j < m; ++j){
+          int x = cin.nextInt();
+          BigInteger d = BigInteger.valueOf(x);
+          b[j] = b[j].multiply(d);
+        }
+      }
+      for (int i = 1; i < m; ++i){
+        if (b[best].compareTo(b[i]) <= 0) best = i;
+      }
+      System.out.println(best + 1);
+      
+    }
+  }
+
+}

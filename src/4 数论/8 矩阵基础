@@ -1,0 +1,48 @@
+// independent 
+struct Matrix{int m[MAXN][MAXN],l,r;
+  Matrix(int w){
+    l=r=w;  
+    memset(m,0,sizeof m);
+  }
+  Matrix(){l=r=0;memset(m,0,sizeof m);}
+};
+// a.r = b.l
+Matrix operator * (Matrix a,Matrix b){ 
+  Matrix c;
+  memset(c.m,0,sizeof c.m);
+  c.l=a.l,c.r=b.r;
+  for(int i=0;i<a.l;i++){
+    for(int j=0;j<b.r;j++){
+      for(int k=0;k<a.r;k++){
+        c.m[i][j]+=a.m[i][k]*b.m[k][j];
+//        c.m[i][j]%=mod;//取余 
+      }
+    } 
+  } 
+  return c;
+} 
+
+// a.l == b.l && a.r == b.r
+Matrix operator + (Matrix a,Matrix b){
+  Matrix c;
+  c.l=a.l;c.r=a.r;
+  for(int i=0;i<a.l;i++){
+    for(int j=0;j<a.r;j++){
+      c.m[i][j]=a.m[i][j]+b.m[i][j];
+      c.m[i][j]%=mod;
+    } 
+  }
+  return c;
+}
+Matrix FM(Matrix a,int t)
+{
+  Matrix ans;ans.l=ans.r=a.l;
+  for(int i=0;i<a.l;i++)ans.m[i][i]=1;
+  Matrix mid=a;
+  while(t){
+    if(t&1) ans=ans*mid;
+    mid=mid*mid;
+    t>>=1;
+  }
+  return ans;
+}

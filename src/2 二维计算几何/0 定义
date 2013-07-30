@@ -1,0 +1,104 @@
+#define eps 1e-8
+#define fabs(x) ((x) > 0? (x): -(x))
+#define zero(x) (fabs(x) < eps)
+#define _sign(x) ((x)>eps?1:((x)<-eps?2:0))
+#define sqr(x) ((x)*(x))
+#define MAXN 1000
+#define offset 10000
+const double pi=acos(-1);
+
+
+// 点的定义 
+struct point{
+  int index;
+  double ang;
+  double x, y;
+  point(){x = 0;y = 0;}
+  point(double sx, double sy){
+    x = sx;
+    y = sy;
+  }
+  void read(){
+    scanf("%lf %lf ", &x, &y);
+  }
+  bool operator <(const point &b)const{
+    if (b.x == x) return y < b.y;
+    return x < b.x;
+  }
+  point operator - (const point &b)const {
+    point a;
+    a.x = x - b.x;
+    a.y = y - b.y;
+    return a;
+  }
+  point operator + (const point &b)const{
+    point a;
+    a.x = x + b.x;
+    a.y = y + b.y;
+    return a;
+  }
+  point operator / (const double &c)const{
+    point a;
+    a.x = x / c;
+    a.y = y / c;
+    return a;
+  }
+  point operator * (const double &c)const{
+    point a;
+    a.x = x * c;
+    a.y = y * c; 
+    return a;
+  }
+  bool operator == (const point &p) const {
+    return zero(x - p.x)&&zero(y - p.y);
+  }
+  friend ostream& operator << (ostream &out, const point &a);
+};
+typedef const point CP;
+ostream& operator << (ostream &out, const point &a){
+  out<<a.x<<' '<<a.y;
+  return out;
+}
+bool cmp(const point &p1, const point &p2){
+  return p1.ang < p2.ang;
+}
+
+// 线定义, 使用< 进行极角排序之前需要对所有线段调用getang 函数 
+struct line{
+  double ang;
+  point a, b;line(){};
+  line(const point &p1, const point &p2){
+    a = p1;
+    b = p2;
+  }
+  bool operator < (const line &y)const{
+    if (zero(ang - y.ang))
+      return (xmult(a, y.b, y.a) < 0);
+    return ang < y.ang;
+  }
+  void getang(){
+    ang = atan2(b.y - a.y, b.x - a.x);
+  }
+  friend ostream& operator << (ostream &out, const line &a);
+};
+ostream& operator << (ostream &out, const line &a){
+  out<<a.a<<' '<<a.b<<' '<<a.ang;
+  return out;
+}
+typedef const line CL;
+// 圆定义 
+struct circle{
+  double r;
+  point c;
+  circle(){};
+  circle(const point &p, double x){
+    c = p;
+    x = r;
+  }
+  friend ostream& operator << (ostream &out, const circle &a);
+};
+ostream& operator << (ostream &out, const circle &a){
+  out<<a.c<<' '<<a.r;
+  return out;
+}
+typedef const circle CC;

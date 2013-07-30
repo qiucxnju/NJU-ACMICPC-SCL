@@ -1,0 +1,77 @@
+#include <cstdio>
+
+struct IT
+{
+  #define MN 1048577*2
+  long long F[MN],D[MN];
+  int N;
+  long long C,Ans;
+  int ll,rr;
+  void upd( int k, int l, int r)
+  {
+    if (D[k])
+    {
+      F[k]+=D[k]*((long long)r-l+1);
+      if (k<N) D[k<<1]+=D[k],D[(k<<1)+1]+=D[k];
+      D[k]=0;
+    }
+  }
+  void find( int k, int l, int r)
+  {
+    upd(k,l,r);
+    if (r<ll||l>rr) return ;
+    if (ll<=l&&rr>=r)
+    {
+      Ans+=F[k];
+      return ;
+    }
+    find(k<<1,l,(l+r)>>1);
+    find((k<<1)+1,((l+r)>>1)+1,r);
+  }
+  void Add( int k, int l, int r)
+  {
+    upd(k,l,r);
+    if (r<ll||l>rr) return ;
+    if (ll<=l&&rr>=r)
+    {
+      D[k]+=C;
+      upd(k,l,r);
+      return ;
+    }
+    Add(k<<1,l,(l+r)>>1);
+    Add((k<<1)+1,((l+r)>>1)+1,r);
+    F[k]=F[k<<1]+F[(k<<1)+1];
+  }
+  void init( int NN)
+  {
+    for (N=1;N<NN;N<<=1);
+    for (int i=1;i<=NN;i++) scanf("%I64d",&F[i+N-1]);
+    for (int i=N-1;i;i--) F[i]=F[i<<1]+F[(i<<1)+1];
+  }
+  long long search( int _l, int _r)
+  {
+    ll=_l;rr=_r;
+    Ans=0;
+    find(1,1,N);
+    return Ans;
+  }
+  void add( int _l, int _r, long long c)
+  {
+    ll=_l;rr=_r;C=c;
+    Add(1,1,N);
+  }
+} T;
+
+int N,M,a,b,c;
+
+int main()
+{
+  scanf("%d%d",&N,&M);
+  T.init(N);
+  for (int i=1;i<=M;i++)
+  {
+    scanf("%d%d%d",&a,&b,&c);
+    T.Add(a,b,c);
+    printf("%lld\n",T.search(i,N));
+  }
+}

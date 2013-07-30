@@ -1,0 +1,112 @@
+//Dinic
+// 当前弧、多路增广、断层优化
+//*@
+#include <cstring>
+#define MN 1000
+#define MM 100000
+
+struct E_Node
+{
+  int a,b,opp,ne;
+  int f;
+} E[MM];
+
+int R[MN],e_sz;
+
+
+
+struct s_node{
+  int v,p;
+} s[MN];
+
+
+int top,N,M,S,T,ans;
+int Q[MN],L[MN];
+bool hash[MN];
+
+void init()
+{
+  memset(R,0,sizeof R);
+  e_sz=0;
+  ans=0;
+}
+
+void add( int a, int b, int c){
+  E[++e_sz].a=a;E[e_sz].b=b;E[e_sz].f=c;
+  E[e_sz].ne=R[a];R[a]=e_sz;
+}
+
+void ins( int a, int b, int c){
+  add(a,b,c);
+  E[e_sz].opp=e_sz+1;
+  add(b,a,0);
+  E[e_sz].opp=e_sz-1;
+}
+
+int BFS(){
+  int h,t,p;
+  memset(L,0,sizeof(L));
+  Q[h=t=1]=S;
+  L[S]=1;
+  for (;h<=t;h++){
+    for (p=R[Q[h]];p;p=E[p].ne)
+      if (E[p].f&&(!L[E[p].b])){
+        L[E[p].b]=L[Q[h]]+1;
+        Q[++t]=E[p].b;
+      }
+    if (L[T]) return L[T];
+  }
+  return L[T];
+}
+
+int augmented(){
+  int min=0x7fffffff;
+  int mins;
+  for (int i=1;i<top;i++)
+    if (E[s[i].p].f<min){
+      min=E[s[i].p].f;
+      mins=i;
+    }
+  for (int i=1;i<top;i++){
+    E[s[i].p].f-=min;
+    E[E[s[i].p].opp].f+=min;
+  }
+  ans+=min;
+  return mins;
+}
+
+void Dinic(){
+  bool f;
+  int *p,*v;
+  s[top=1].v=S;s[1].p=0;
+  memset(hash,true,sizeof(hash));
+  while (top){
+    v=&s[top].v;
+    p=&s[top].p;
+    if (*v==T){
+      top=augmented();
+      continue;
+    }
+    if (*p)
+      *p=E[*p].ne;
+    else
+      *p=R[*v];
+    f=false;
+    for (;*p;*p=E[*p].ne)
+      if (hash[E[*p].b]&&E[*p].f&&L[*v]+1==L[E[*p].b]){
+        s[++top].v=E[*p].b;
+        s[top].p=0;
+        top++;
+        f=true;
+        break;
+      }
+    if (!f)
+      hash[s[top].v]=false;
+    top--;
+  }
+}
+
+//init();
+//ins(a,b,c);
+//while (BFS()) Dinic();
+

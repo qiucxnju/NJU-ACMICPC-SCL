@@ -1,0 +1,13 @@
+// depend on 基础：ext_gcd 
+
+// 求一元线性同余方程： a*x = b mod m   的所有解（在同余系中） ,存于ans数组 ,解的个数存在len中 
+bool cong_eq(LL a,LL b,LL m,LL ans[],LL &len)
+{
+   LL g,x,y;
+   g=ext_gcd(a,m,x,y);
+   if(b%g) return false;
+   LL base=((b/g*x)%m+m)%m;
+   len=g;
+   for(int i=0;i<len;i++) ans[i]=(base+i*(m/len))%m;
+   return true;
+}

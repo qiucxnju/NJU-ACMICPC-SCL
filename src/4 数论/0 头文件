@@ -1,0 +1,16 @@
+// independent
+#include<iostream>
+#include<algorithm>
+#include<cmath>
+#include<cstdio>
+#include<cstdio>
+#include<map>
+#include<set>
+#include<vector>
+#include<cstring>
+#include<string>
+using namespace std;
+typedef long long LL;
+typedef unsigned int UI;
+typedef unsigned long long ULL;
+const LL mod=1000000007;

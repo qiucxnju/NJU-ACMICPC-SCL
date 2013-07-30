@@ -1,0 +1,43 @@
+// 建树和倍增求 lca
+
+  //buildtree
+
+  int dep[MN],root[MN];
+  int ancestor[MN][logMN];
+  void buildtree( int k)
+  {
+    vis[k]=1;
+    for (int p=R[k];p;p=E[p].ne)
+    {
+      if (vis[E[p].v]) continue;
+      ancestor[E[p].v][0]=k,dep[E[p].v]=dep[k]+1,root[E[p].v]=root[k],buildtree(E[p].v);
+    }
+  }
+  //lca_init
+  // 可以处理森林
+  void lca_init( int N)
+  {
+    memset(ancestor,0,sizeof ancestor);
+    for (int i=1;i<=N;i++) vis[i]=0;
+    for (int i=1;i<=N;i++)
+      if (ancestor[i][0]==0) dep[i]=1,root[i]=i,buildtree(i);
+
+    for (int k=1;k<=log2(N);k++)
+      for (int i=1;i<=N;i++)
+        ancestor[i][k]=ancestor[ancestor[i][k-1]][k-1];
+  }
+
+  //return lca(a,b)
+  //return -1 if a,b in diffirent tree
+  int lca_query( int a, int b, int N)
+  {
+    int ans=dep[a]+dep[b];
+    if (root[a]!=root[b]) return -1;
+    if (a==b) return a;
+    if (dep[a]>dep[b]) swap(a,b);
+    for (int k=0;k<=log2(N);k++) if ((1<<k)&delta) b=ancestor[b][k];
+    if (a==b) return a;
+    for (int k=log2(N);k>=0;k--) if (ancestor[a][k]!=ancestor[b][k]) a=ancestor[a][k],b=ancestor[b][k];
+    return ancestor[a][0];
+  }
+

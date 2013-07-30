@@ -1,0 +1,37 @@
+// 匈牙利算法解二分图匹配
+// 一般小于 NM
+//*@
+bool Vis[MN];
+int Link[MN];
+int Cache[MN];
+int Csz;
+
+bool find( int k)
+{
+  for (int p=R[k];p;p=E[p].ne)
+    if (!Vis[E[p].v])
+    {
+      Vis[E[p].v]=1;
+      Cache[++Csz]=E[p].v;
+      if (!Link[E[p].v])
+      {
+        Link[E[p].v]=k;
+        return true;  
+      }
+      if (find(Link[E[p].v]))
+      {
+        Link[E[p].v]=k;
+        return true;
+      }
+    }
+  return false;
+}
+
+    memset(Link,0,sizeof Link);
+    for (int i=1;i<=N;i++)
+    {
+      for (int k=1;k<=Csz;k++)
+        Vis[Cache[k]]=0;
+        Csz=0;
+        if (find(cc(i,j))) ans++;
+    }

@@ -1,0 +1,102 @@
+//KM
+// 二分图最佳匹配
+// 点数不等时添加虚拟点，与所有点的边权为 0
+// 点数不等时不能将边权变负，要用 INF 去减
+//N^3
+
+#include <cstdio>
+#include <cstring>
+
+#define MN 301
+#define INF 0x7fffffff
+
+int w[MN][MN];
+int lx[MN],ly[MN]; 
+int linky[MN];
+int visx[MN],visy[MN];
+int slack[MN];
+int N;
+bool find(int x)
+{
+  visx[x] = true;
+  for(int y = 1; y <=N; y++)
+  {
+    if(visy[y])
+      continue;
+    int t = lx[x] + ly[y] - w[x][y];
+    if(t==0)
+    {
+      visy[y] = true;
+      if(linky[y]==-1 || find(linky[y]))
+      {
+        linky[y] = x;
+        return true;    
+      }
+    }
+    else if(slack[y] > t)
+      slack[y] = t;
+  }
+  return false;        
+}
+
+int KM()        
+{
+  int i,j;
+
+  memset(linky,-1,sizeof(linky));
+  memset(ly,0,sizeof(ly));
+  for(i = 1; i <=N; i++)
+  {
+    lx[i] = -INF;
+     for(j = 1; j <=N; j++)
+      if(w[i][j] > lx[i])
+        lx[i] = w[i][j];
+  }
+
+  for(int x = 1; x <=N; x++)
+  {
+    for(i = 1; i <=N; i++)
+      slack[i] = INF;
+    while(true)
+    {
+      memset(visx,0,sizeof(visx));
+      memset(visy,0,sizeof(visy));
+      if(find(x))
+        break;
+      int d = INF;
+      for(i = 1; i <=N; i++)   
+      {
+        if(!visy[i] && d > slack[i])
+          d = slack[i];
+      }
+      for(i = 1; i <=N; i++)
+      {
+        if(visx[i])
+          lx[i] -= d;
+      }
+      for(i = 1; i <=N; i++)
+      {
+        if(visy[i])
+           ly[i] += d;
+        else
+          slack[i] -= d;
+      }
+    }
+  }
+  int result = 0;
+  for(i = 1; i <=N; i++)
+  if(linky[i]>-1)
+    result += w[linky[i]][i];
+  return result;
+}
+
+int main()
+{
+  while (scanf("%d",&N)!=EOF)
+  {
+    memset(w,0,sizeof w);
+    for (int i=1;i<=N;i++)
+      for (int j=1;j<=N;j++) scanf("%d",&w[i][j]);
+    printf("%d\n",KM());
+  }
+}

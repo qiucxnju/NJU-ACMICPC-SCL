@@ -1,0 +1,18 @@
+// depend on 基础：ext_gcd 
+
+// 中国剩余定理解特殊线性方程组，  x= a[i] mod b[i],其中 b[i]两两互质，共r个方程 
+LL china(LL a[], LL b[], int r){
+  LL M=1;
+  LL i,Mi,x0,y0,d,ans=0;
+  for(i=0;i<r;i++){
+    M*=b[i];  
+  } 
+  for(i=0;i<r;i++){
+    Mi=M/b[i];
+    ext_gcd(Mi,b[i],x0,y0);
+    ans=(ans+Mi*x0*a[i])%M; 
+  }
+  if(ans<0) ans+=M;
+  return ans;
+}
+ 
